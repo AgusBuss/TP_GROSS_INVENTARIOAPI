@@ -24,6 +24,7 @@ builder.Services.AddIdentity<Usuario, IdentityRole>(options =>
     options.Password.RequireUppercase = false;
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddErrorDescriber<IdentityErrorDescriberEs>()
     .AddDefaultTokenProviders();
 builder.Services.AddControllersWithViews(options =>
 {

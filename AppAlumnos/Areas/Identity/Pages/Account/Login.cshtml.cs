@@ -45,15 +45,17 @@ public class LoginModel : PageModel
 
     public class InputModel
     {
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "El email es obligatorio.")]
+        [EmailAddress(ErrorMessage = "Ingrese un email válido.")]
+        [Display(Name = "Email")]
         public string Email { get; set; } = default!;
 
-        [Required]
+        [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [DataType(DataType.Password)]
+        [Display(Name = "Contraseña")]
         public string Password { get; set; } = default!;
 
-        [Display(Name = "Remember me?")]
+        [Display(Name = "Recordarme")]
         public bool RememberMe { get; set; }
     }
 
@@ -98,7 +100,7 @@ public class LoginModel : PageModel
                     return Page();
                 }
 
-                _logger.LogInformation("User logged in.");
+                _logger.LogInformation("Usuario ingresado.");
                 return LocalRedirect(returnUrl);
             }
             if (result.RequiresTwoFactor)
@@ -107,12 +109,12 @@ public class LoginModel : PageModel
             }
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("User account locked out.");
+                _logger.LogWarning("cuenta de usuario bloqueada.");
                 return RedirectToPage("./Lockout");
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                ModelState.AddModelError(string.Empty, "Email o contraseña incorrectos.");
                 return Page();
             }
         }

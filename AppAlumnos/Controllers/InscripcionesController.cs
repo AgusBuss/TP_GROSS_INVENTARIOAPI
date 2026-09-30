@@ -15,6 +15,9 @@ namespace AppAlumnos.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<Usuario> _userManager;
 
+        // Nota mínima para poder aprobar una materia
+        private const double NotaMinimaAprobacion = 6;
+
         public InscripcionesController(ApplicationDbContext context, UserManager<Usuario> userManager)
         {
             _context = context;
@@ -60,11 +63,12 @@ namespace AppAlumnos.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerFormulario(int id = 0)
         {
-            await CargarListasAsync();
             ViewBag.EsStaff = EsStaff();
 
             if (id == 0)
             {
+                await CargarListasAsync();
+
                 var nueva = new Inscripcion { AnioLectivo = DateTime.Now.Year, Fecha = DateTime.Today };
 
                 // Si es alumno, se autocompleta y bloquea su propio Id
@@ -92,6 +96,9 @@ namespace AppAlumnos.Controllers
             {
                 return Forbid();
             }
+
+            // Se pasa la materia actual para que siga apareciendo seleccionada al editar
+            await CargarListasAsync(inscripcion.MateriaId);
 
             return PartialView("_FormularioInscripcionPartial", inscripcion);
         }
@@ -147,6 +154,21 @@ namespace AppAlumnos.Controllers
                 }
             }
 
+            // Regla de negocio: solo se puede aprobar con la nota mínima
+            if (inscripcion.Estado == EstadoInscripcion.Aprobada)
+            {
+                if (inscripcion.NotaFinal == null)
+                {
+                    ModelState.AddModelError(nameof(inscripcion.NotaFinal),
+                        "Para aprobar la materia hay que cargar la nota final.");
+                }
+                else if (inscripcion.NotaFinal < NotaMinimaAprobacion)
+                {
+                    ModelState.AddModelError(nameof(inscripcion.NotaFinal),
+                        $"No se puede aprobar con una nota menor a {NotaMinimaAprobacion}.");
+                }
+            }
+
             // Regla de negocio: no permitir doble inscripción a la misma materia en el mismo año lectivo
             bool yaExiste = await _context.Inscripciones.AnyAsync(i =>
                 i.AlumnoId == inscripcion.AlumnoId &&
@@ -173,7 +195,7 @@ namespace AppAlumnos.Controllers
                 return Json(new { success = true, mensaje = "Inscripción guardada correctamente." });
             }
 
-            await CargarListasAsync();
+            await CargarListasAsync(inscripcion.MateriaId);
             ViewBag.EsStaff = esStaff;
             return PartialView("_FormularioInscripcionPartial", inscripcion);
         }
@@ -205,7 +227,7 @@ namespace AppAlumnos.Controllers
             return Json(new { success = true, mensaje = "Inscripción eliminada correctamente." });
         }
 
-        private async Task CargarListasAsync()
+        private async Task CargarListasAsync(int? materiaActualId = null)
         {
             var alumnos = await _userManager.GetUsersInRoleAsync("Alumno");
             ViewBag.Alumnos = new SelectList(
@@ -214,12 +236,23 @@ namespace AppAlumnos.Controllers
 
             var materiasQuery = _context.Materias.Include(m => m.Carrera).AsQueryable();
 
-            // Un docente solo puede elegir entre las materias que tiene asignadas
             if (EsSoloDocente())
             {
+                // Un docente solo puede elegir entre las materias que tiene asignadas
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 materiasQuery = materiasQuery.Where(m => _context.DocentesMaterias
                     .Any(dm => dm.DocenteId == userId && dm.MateriaId == m.Id));
+            }
+            else if (!EsStaff())
+            {
+                // Un alumno solo ve las materias donde todavía no está inscripto en el año actual
+                // (más la materia que está editando, para que no desaparezca del desplegable)
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int anioActual = DateTime.Now.Year;
+                materiasQuery = materiasQuery.Where(m =>
+                    m.Id == materiaActualId ||
+                    !_context.Inscripciones.Any(i =>
+                        i.AlumnoId == userId && i.MateriaId == m.Id && i.AnioLectivo == anioActual));
             }
 
             ViewBag.Materias = new SelectList(
