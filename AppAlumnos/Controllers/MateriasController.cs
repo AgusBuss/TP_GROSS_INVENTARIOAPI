@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using AppAlumnos.Data;
 using AppAlumnos.Models;
 
 namespace AppAlumnos.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class MateriasController : Controller
     {
         private readonly ApplicationDbContext _context;

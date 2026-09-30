@@ -75,6 +75,10 @@ namespace AppAlumnos.Data
                 }
                 else if (entry.State == EntityState.Modified)
                 {
+                    // Los datos de creación nunca se deben pisar al editar
+                    entry.Property(e => e.FechaCreacion).IsModified = false;
+                    entry.Property(e => e.UsuarioCreacionId).IsModified = false;
+
                     entry.Entity.FechaModificacion = DateTime.Now;
                     entry.Entity.UsuarioModificacionId = userId;
                 }

@@ -1,6 +1,16 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using AppAlumnos.Data;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -9,15 +19,6 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
-using AppAlumnos.Data;
 
 namespace AppAlumnos.Areas.Identity.Pages.Account;
 
@@ -63,6 +64,7 @@ public class RegisterModel : PageModel
         public string Apellido { get; set; } = default!;
 
         [Required(ErrorMessage = "El DNI es obligatorio.")]
+        [Range(1000000, 99999999, ErrorMessage = "Ingrese un número de DNI válido (entre 7 y 8 dígitos).")]
         [Display(Name = "DNI")]
         public int Dni { get; set; }
 
@@ -96,6 +98,13 @@ public class RegisterModel : PageModel
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         if (ModelState.IsValid)
         {
+            // No permitir dos usuarios con el mismo DNI
+            if (await _userManager.Users.AnyAsync(u => u.Dni == Input.Dni))
+            {
+                ModelState.AddModelError("Input.Dni", "Ya existe un usuario con ese DNI.");
+                return Page();
+            }
+
             var user = CreateUser();
             user.Nombre = Input.Nombre;
             user.Apellido = Input.Apellido;

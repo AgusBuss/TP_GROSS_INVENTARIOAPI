@@ -23,19 +23,33 @@ namespace AppAlumnos.Controllers
 
         private bool EsStaff() => User.IsInRole("Docente") || User.IsInRole("Administrador");
 
+        // Docente "puro": es docente y no es administrador (el admin puede todo)
+        private bool EsSoloDocente() => User.IsInRole("Docente") && !User.IsInRole("Administrador");
+
+        // ¿Esta materia está asignada a este docente?
+        private Task<bool> DocenteTieneMateriaAsync(string? docenteId, int materiaId) =>
+            _context.DocentesMaterias.AnyAsync(dm => dm.DocenteId == docenteId && dm.MateriaId == materiaId);
+
         // GET: Inscripciones (Vista Principal)
         public async Task<IActionResult> Index()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var query = _context.Inscripciones
                 .Include(i => i.Alumno)
                 .Include(i => i.Materia)
                 .AsQueryable();
 
-            // Un alumno solo ve sus propias inscripciones. Docente/Admin ven todas.
             if (!EsStaff())
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                // Un alumno solo ve sus propias inscripciones
                 query = query.Where(i => i.AlumnoId == userId);
+            }
+            else if (EsSoloDocente())
+            {
+                // Un docente solo ve las inscripciones de las materias que tiene asignadas
+                query = query.Where(i => _context.DocentesMaterias
+                    .Any(dm => dm.DocenteId == userId && dm.MateriaId == i.MateriaId));
             }
 
             ViewBag.EsStaff = EsStaff();
@@ -65,8 +79,16 @@ namespace AppAlumnos.Controllers
             var inscripcion = await _context.Inscripciones.FindAsync(id);
             if (inscripcion == null) return NotFound();
 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             // Un alumno no puede editar inscripciones ajenas, ni siquiera abrir el formulario
-            if (!EsStaff() && inscripcion.AlumnoId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            if (!EsStaff() && inscripcion.AlumnoId != userId)
+            {
+                return Forbid();
+            }
+
+            // Un docente no puede abrir inscripciones de materias que no tiene asignadas
+            if (EsSoloDocente() && !await DocenteTieneMateriaAsync(userId, inscripcion.MateriaId))
             {
                 return Forbid();
             }
@@ -95,6 +117,30 @@ namespace AppAlumnos.Controllers
                     var existenteAjena = await _context.Inscripciones.AsNoTracking()
                         .FirstOrDefaultAsync(i => i.Id == inscripcion.Id);
                     if (existenteAjena == null || existenteAjena.AlumnoId != userId)
+                    {
+                        return Forbid();
+                    }
+                }
+            }
+
+            // Un docente solo puede gestionar inscripciones de materias que tiene asignadas
+            if (EsSoloDocente())
+            {
+                // La materia elegida en el formulario debe ser una de las suyas
+                if (!await DocenteTieneMateriaAsync(userId, inscripcion.MateriaId))
+                {
+                    ModelState.AddModelError(nameof(inscripcion.MateriaId),
+                        "No podés gestionar inscripciones de una materia que no tenés asignada.");
+                }
+
+                // Y si edita una existente, la materia original también debe ser suya
+                // (evita cambiar el MateriaId en el POST para saltear el control)
+                if (inscripcion.Id != 0)
+                {
+                    var original = await _context.Inscripciones.AsNoTracking()
+                        .FirstOrDefaultAsync(i => i.Id == inscripcion.Id);
+
+                    if (original == null || !await DocenteTieneMateriaAsync(userId, original.MateriaId))
                     {
                         return Forbid();
                     }
@@ -144,6 +190,16 @@ namespace AppAlumnos.Controllers
                 return Json(new { success = false, mensaje = "La inscripción no existe." });
             }
 
+            // Un docente solo puede eliminar inscripciones de sus materias
+            if (EsSoloDocente())
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!await DocenteTieneMateriaAsync(userId, inscripcion.MateriaId))
+                {
+                    return Json(new { success = false, mensaje = "No tenés asignada la materia de esta inscripción." });
+                }
+            }
+
             _context.Inscripciones.Remove(inscripcion);
             await _context.SaveChangesAsync();
             return Json(new { success = true, mensaje = "Inscripción eliminada correctamente." });
@@ -156,8 +212,18 @@ namespace AppAlumnos.Controllers
                 alumnos.OrderBy(a => a.Apellido).ThenBy(a => a.Nombre),
                 "Id", "NombreCompleto");
 
+            var materiasQuery = _context.Materias.Include(m => m.Carrera).AsQueryable();
+
+            // Un docente solo puede elegir entre las materias que tiene asignadas
+            if (EsSoloDocente())
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                materiasQuery = materiasQuery.Where(m => _context.DocentesMaterias
+                    .Any(dm => dm.DocenteId == userId && dm.MateriaId == m.Id));
+            }
+
             ViewBag.Materias = new SelectList(
-                await _context.Materias.Include(m => m.Carrera).OrderBy(m => m.Nombre).ToListAsync(),
+                await materiasQuery.OrderBy(m => m.Nombre).ToListAsync(),
                 "Id", "Nombre");
         }
     }

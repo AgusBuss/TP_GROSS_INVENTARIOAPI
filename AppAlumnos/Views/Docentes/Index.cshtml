@@ -1,0 +1,114 @@
+﻿@model IEnumerable<AppAlumnos.Models.Usuario>
+
+@{
+    ViewData["Title"] = "Gestión de Docentes";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestión de Docentes</h2>
+    <button type="button" class="btn btn-primary" onclick="abrirModal('@Url.Action("ObtenerFormulario", "Docentes")')">
+        + Nuevo Docente
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Docente</th>
+                    <th>DNI</th>
+                    <th>Legajo</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No hay docentes registrados.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="align-middle">@item.NombreCompleto</td>
+                            <td class="align-middle">@item.Dni</td>
+                            <td class="align-middle">@(item.Legajo ?? "—")</td>
+                            <td class="align-middle">@item.Email</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3 text-muted">
+    Después de registrar un docente, asignale sus materias desde
+    <a asp-controller="Asignaciones" asp-action="Index">Asignaciones</a>.
+</div>
+
+<!-- Contenedor del Modal Bootstrap -->
+<div class="modal fade" id="modalDocente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" id="modalContent">
+            <!-- La parcial se cargará aquí vía AJAX -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const modalElement = new bootstrap.Modal(document.getElementById('modalDocente'));
+        const modalContent = document.getElementById('modalContent');
+
+        function abrirModal(url) {
+            fetch(url)
+                .then(res => res.text())
+                .then(html => {
+                    modalContent.innerHTML = html;
+                    $.validator.unobtrusive.parse('#formDocente');
+                    modalElement.show();
+                });
+        }
+
+        function guardarDocente(event) {
+            event.preventDefault();
+            const form = event.target;
+            if (!$(form).valid()) return;
+
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form)
+            })
+                .then(res => {
+                    if (res.headers.get("content-type").includes("application/json")) {
+                        return res.json().then(data => {
+                            if (data.success) {
+                                modalElement.hide();
+                                Swal.fire({
+                                    title: '¡Listo!',
+                                    text: data.mensaje,
+                                    icon: 'success',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => location.reload());
+                            }
+                        });
+                    }
+                    else {
+                        return res.text().then(html => {
+                            modalContent.innerHTML = html;
+                            $.validator.unobtrusive.parse('#formDocente');
+                        });
+                    }
+                });
+        }
+    </script>
+}

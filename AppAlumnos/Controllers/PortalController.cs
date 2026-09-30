@@ -33,7 +33,8 @@ namespace AppAlumnos.Controllers
         private bool EsStaff() => User.IsInRole("Docente") || User.IsInRole("Administrador");
 
         // GET: Portal/HistoriaAcademica
-        [Authorize(Roles = "Alumno,Docente,Administrador")]
+        // Solo Alumno (la suya) y Administrador (la de cualquiera). El docente no accede.
+        [Authorize(Roles = "Alumno,Administrador")]
         public async Task<IActionResult> HistoriaAcademica(string? alumnoId)
         {
             string? idAConsultar;
@@ -96,10 +97,12 @@ namespace AppAlumnos.Controllers
                 }
             }
 
-            var materias = await _context.DocentesMaterias
-                .Include(dm => dm.Materia)
-                .Where(dm => dm.DocenteId == idDocente)
-                .Select(dm => dm.Materia!)
+            // Se parte de Materias (y no de DocentesMaterias) para que el Include de Carrera funcione
+            var materias = await _context.Materias
+                .Include(m => m.Carrera)
+                .Where(m => _context.DocentesMaterias
+                    .Any(dm => dm.DocenteId == idDocente && dm.MateriaId == m.Id))
+                .OrderBy(m => m.Nombre)
                 .ToListAsync();
 
             var conteos = await _context.Inscripciones
@@ -165,7 +168,8 @@ namespace AppAlumnos.Controllers
         }
 
         // GET: Portal/Certificado
-        [Authorize(Roles = "Alumno,Docente,Administrador")]
+        // Solo Alumno (el suyo) y Administrador (el de cualquiera). El docente no accede.
+        [Authorize(Roles = "Alumno,Administrador")]
         public async Task<IActionResult> Certificado(string? alumnoId)
         {
             string? idAConsultar;
@@ -205,7 +209,8 @@ namespace AppAlumnos.Controllers
         }
 
         // GET: Portal/GenerarCertificado
-        [Authorize(Roles = "Alumno,Docente,Administrador")]
+        // Solo Alumno (el suyo) y Administrador (el de cualquiera). El docente no accede.
+        [Authorize(Roles = "Alumno,Administrador")]
         public async Task<IActionResult> GenerarCertificado(string alumnoId, string tipo)
         {
             // Un alumno solo puede pedir su propio certificado, sin importar qué le manden por query string

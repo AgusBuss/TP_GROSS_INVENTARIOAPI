@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using AppAlumnos.Models;
 using AppAlumnos.Data;
 
 namespace AppAlumnos.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class CarrerasController : Controller
     {
         private readonly ApplicationDbContext _context;
