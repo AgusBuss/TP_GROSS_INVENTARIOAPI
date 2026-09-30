@@ -1,0 +1,62 @@
+﻿@model IEnumerable<AppAlumnos.Models.Materia>
+
+@{
+    ViewData["Title"] = "Mis Materias";
+    bool mostrarSelector = (bool)(ViewBag.MostrarSelector ?? false);
+    var conteos = ViewBag.Conteos as Dictionary<int, int>;
+}
+
+<partial name="_PortalNav" />
+
+<h2 class="mb-4">Mis Materias</h2>
+
+@if (mostrarSelector)
+{
+    <form method="get" asp-action="MisMaterias" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <select name="docenteId" asp-items="ViewBag.Docentes" class="form-select">
+                <option value="">-- Seleccione un docente --</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Ver Materias</button>
+        </div>
+    </form>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Materia</th>
+                <th>Año</th>
+                <th>Carrera</th>
+                <th>Alumnos Cursando</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No tenés materias asignadas.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var materia in Model)
+                {
+                    <tr>
+                        <td>@materia.Nombre</td>
+                        <td>@materia.Anio</td>
+                        <td>@materia.Carrera?.Nombre</td>
+                        <td>@(conteos != null && conteos.ContainsKey(materia.Id) ? conteos[materia.Id] : 0)</td>
+                        <td class="text-end">
+                            <a asp-action="DetalleMateria" asp-route-id="@materia.Id" class="btn btn-sm btn-primary">Ver Alumnos</a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,76 @@
+﻿@model AppAlumnos.Models.Inscripcion
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">@(Model.Id == 0 ? "Nueva Inscripción" : "Editar Inscripción")</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="formInscripcion" asp-action="Guardar" asp-controller="Inscripciones" method="post" onsubmit="guardarInscripcion(event)">
+    <div class="modal-body">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="Id" />
+
+        @if ((bool)(ViewBag.EsStaff ?? false))
+        {
+            <div class="form-floating mb-3">
+                <select asp-for="AlumnoId" asp-items="ViewBag.Alumnos" class="form-select">
+                    <option value="">-- Seleccione un alumno --</option>
+                </select>
+                <label asp-for="AlumnoId"></label>
+                <span asp-validation-for="AlumnoId" class="text-danger"></span>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" asp-for="AlumnoId" />
+        }
+
+        <div class="form-floating mb-3">
+            <select asp-for="MateriaId" asp-items="ViewBag.Materias" class="form-select">
+                <option value="">-- Seleccione una materia --</option>
+            </select>
+            <label asp-for="MateriaId"></label>
+            <span asp-validation-for="MateriaId" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="AnioLectivo" class="form-control" placeholder="2026" />
+            <label asp-for="AnioLectivo"></label>
+            <span asp-validation-for="AnioLectivo" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="Fecha" class="form-control" />
+            <label asp-for="Fecha"></label>
+            <span asp-validation-for="Fecha" class="text-danger"></span>
+        </div>
+
+        @if ((bool)(ViewBag.EsStaff ?? false))
+        {
+            <div class="form-floating mb-3">
+                <select asp-for="Estado" asp-items="Html.GetEnumSelectList<AppAlumnos.Models.EstadoInscripcion>()" class="form-select">
+                </select>
+                <label asp-for="Estado"></label>
+                <span asp-validation-for="Estado" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input asp-for="NotaFinal" class="form-control" placeholder="0 a 10" step="0.01" />
+                <label asp-for="NotaFinal"></label>
+                <span asp-validation-for="NotaFinal" class="text-danger"></span>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted small">
+                <i class="bi bi-info-circle"></i> El estado y la nota final los carga el docente o administrador.
+            </p>
+        }
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle"></i> Guardar
+        </button>
+    </div>
+</form>

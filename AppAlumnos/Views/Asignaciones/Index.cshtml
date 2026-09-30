@@ -1,0 +1,131 @@
+﻿@model IEnumerable<AppAlumnos.Models.DocenteMateria>
+
+@{
+    ViewData["Title"] = "Asignación de Docentes a Materias";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Asignación de Docentes a Materias</h2>
+    <button type="button" class="btn btn-primary" onclick="abrirModal('@Url.Action("ObtenerFormulario", "Asignaciones", new { id = 0 })')">
+        + Nueva Asignación
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Docente</th>
+                    <th>Materia</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="align-middle">@item.Docente?.NombreCompleto</td>
+                        <td class="align-middle">@item.Materia?.Nombre</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger" onclick="eliminarAsignacion(@item.Id)">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAsignacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" id="modalContentAsignacion"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const modalElementAsignacion = new bootstrap.Modal(document.getElementById('modalAsignacion'));
+        const modalContentAsignacion = document.getElementById('modalContentAsignacion');
+
+        function abrirModal(url) {
+            fetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error(`Error del servidor (${res.status})`);
+                    return res.text();
+                })
+                .then(html => {
+                    modalContentAsignacion.innerHTML = html;
+                    $.validator.unobtrusive.parse('#formAsignacion');
+                    modalElementAsignacion.show();
+                })
+                .catch(err => Swal.fire('Error', 'No se pudo abrir el formulario.', 'error'));
+        }
+
+        function guardarAsignacion(event) {
+            event.preventDefault();
+            const form = event.target;
+            if (!$(form).valid()) return;
+
+            fetch(form.action, { method: 'POST', body: new FormData(form) })
+                .then(res => {
+                    if (res.headers.get("content-type")?.includes("application/json")) {
+                        return res.json().then(data => {
+                            if (data.success) {
+                                modalElementAsignacion.hide();
+                                Swal.fire({ title: '¡Listo!', text: data.mensaje, icon: 'success', timer: 1500, showConfirmButton: false })
+                                    .then(() => location.reload());
+                            }
+                        });
+                    } else {
+                        return res.text().then(html => {
+                            modalContentAsignacion.innerHTML = html;
+                            $.validator.unobtrusive.parse('#formAsignacion');
+                        });
+                    }
+                })
+                .catch(err => Swal.fire('Error inesperado', 'No se pudo guardar.', 'error'));
+        }
+
+        function eliminarAsignacion(id) {
+            Swal.fire({
+                title: '¿Eliminar asignación?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    const formData = new FormData();
+                    formData.append('id', id);
+                    if (token) formData.append('__RequestVerificationToken', token);
+
+                    fetch('@Url.Action("EliminarAsync", "Asignaciones")', { method: 'POST', body: formData })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`Error del servidor (${res.status})`);
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({ title: '¡Eliminada!', text: data.mensaje, icon: 'success', timer: 1500, showConfirmButton: false })
+                                    .then(() => location.reload());
+                            } else {
+                                Swal.fire('No se pudo eliminar', data.mensaje, 'error');
+                            }
+                        })
+                        .catch(err => Swal.fire('Error inesperado', 'No se pudo eliminar.', 'error'));
+                }
+            });
+        }
+    </script>
+}

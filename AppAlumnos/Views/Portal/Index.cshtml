@@ -1,0 +1,94 @@
+﻿@{
+    ViewData["Title"] = "Portal de Autogestión";
+    bool esAlumno = User.IsInRole("Alumno");
+    bool esDocente = User.IsInRole("Docente");
+    bool esAdmin = User.IsInRole("Administrador");
+}
+
+<partial name="_PortalNav" />
+
+<h2 class="mb-4">Portal de Autogestión</h2>
+
+@if (esAlumno || esAdmin)
+{
+    <h4 class="mt-4">Para Alumnos</h4>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-journal-plus"></i> Inscripción a Materias</h5>
+                    <p class="card-text">Inscribite a las materias disponibles para el año lectivo actual.</p>
+                    <a asp-controller="Inscripciones" asp-action="Index" class="btn btn-primary">Ir a Inscripciones</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-clock-history"></i> Historia Académica</h5>
+                    <p class="card-text">Consultá y descargá tu historial de materias cursadas, estados y notas.</p>
+                    <a asp-controller="Portal" asp-action="HistoriaAcademica" class="btn btn-primary">Ver mi Historia</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-file-earmark-text"></i> Solicitud de Certificados</h5>
+                    <p class="card-text">Generá tu certificado de alumno regular o de materias aprobadas en PDF.</p>
+                    <a asp-controller="Portal" asp-action="Certificado" class="btn btn-primary">Solicitar Certificado</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (esDocente || esAdmin)
+{
+    <h4 class="mt-4">Para Docentes</h4>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-pencil-square"></i> Cargar Notas</h5>
+                    <p class="card-text">Cargá el estado y la nota final de tus alumnos inscriptos.</p>
+                    <a asp-controller="Inscripciones" asp-action="Index" class="btn btn-success">Ir a Inscripciones</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-people"></i> Mis Materias</h5>
+                    <p class="card-text">Consultá los alumnos inscriptos en las materias que dictás.</p>
+                    <a asp-controller="Portal" asp-action="MisMaterias" class="btn btn-success">Ver mis Materias</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-check2-circle"></i> Cerrar Cursada</h5>
+                    <p class="card-text">Finalizá la cursada de una materia al cierre del año lectivo.</p>
+                    <a asp-controller="Portal" asp-action="MisMaterias" class="btn btn-success">Ir a Mis Materias</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (esAdmin)
+{
+    <h4 class="mt-4">Administración</h4>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-diagram-3"></i> Asignar Docentes a Materias</h5>
+                    <p class="card-text">Gestioná qué docente dicta cada materia.</p>
+                    <a asp-controller="Asignaciones" asp-action="Index" class="btn btn-secondary">Ir a Asignaciones</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,34 @@
+﻿@model AppAlumnos.Models.Carrera
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">@(Model.Id == 0 ? "Nueva Carrera" : "Editar Carrera")</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="formCarrera" asp-action="Guardar" asp-controller="Carreras" method="post" onsubmit="guardarCarrera(event)">
+    <div class="modal-body">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-floating mb-3">
+            <input asp-for="Nombre" class="form-control" placeholder="Ej: Ingeniería en Sistemas" />
+            <label asp-for="Nombre"></label>
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+        <div class="form-floating mb-3">
+            <input asp-for="DuracionAnios" class="form-control" placeholder="5" />
+            <label asp-for="DuracionAnios"></label>
+            <span asp-validation-for="DuracionAnios" class="text-danger"></span>
+        </div>
+        <div class="form-floating mb-3">
+            <textarea asp-for="Descripcion" class="form-control" style="height: 100px" placeholder="Descripción opcional"></textarea>
+            <label asp-for="Descripcion"></label>
+            <span asp-validation-for="Descripcion" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle"></i> Guardar
+        </button>
+    </div>
+</form>

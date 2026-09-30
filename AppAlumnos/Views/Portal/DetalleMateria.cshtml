@@ -1,0 +1,90 @@
+﻿@model IEnumerable<AppAlumnos.Models.Inscripcion>
+
+@{
+    ViewData["Title"] = "Detalle de Materia";
+    var materia = ViewBag.Materia as AppAlumnos.Models.Materia;
+    bool hayPendientes = Model.Any(i => i.Estado == AppAlumnos.Models.EstadoInscripcion.Cursando);
+}
+
+@Html.AntiForgeryToken()
+
+<partial name="_PortalNav" />
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>@materia?.Nombre <small class="text-muted">(@materia?.Anio° año)</small></h2>
+    @if (hayPendientes)
+    {
+        <button class="btn btn-warning" onclick="cerrarCursada(@materia?.Id)">
+            <i class="bi bi-check2-circle"></i> Cerrar Cursada
+        </button>
+    }
+</div>
+
+<table class="table table-bordered">
+    <thead class="table-light">
+        <tr>
+            <th>Alumno</th>
+            <th>Año Lectivo</th>
+            <th>Estado</th>
+            <th>Nota</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="4" class="text-center text-muted">No hay alumnos inscriptos en esta materia.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Alumno?.NombreCompleto</td>
+                    <td>@item.AnioLectivo</td>
+                    <td>@item.Estado</td>
+                    <td>@(item.NotaFinal?.ToString("0.##") ?? "—")</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<a asp-action="MisMaterias" class="btn btn-secondary">Volver a Mis Materias</a>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function cerrarCursada(materiaId) {
+            Swal.fire({
+                title: '¿Cerrar cursada?',
+                text: 'Todos los alumnos que sigan "Cursando" pasarán a estado "Libre". Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, cerrar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    const formData = new FormData();
+                    formData.append('materiaId', materiaId);
+                    if (token) formData.append('__RequestVerificationToken', token);
+
+                    fetch('@Url.Action("CerrarCursada", "Portal")', { method: 'POST', body: formData })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`Error del servidor (${res.status})`);
+                            return res.json();
+                        })
+                        .then(data => {
+                            Swal.fire({ title: '¡Listo!', text: data.mensaje, icon: 'success' })
+                                .then(() => location.reload());
+                        })
+                        .catch(err => Swal.fire('Error', 'No se pudo cerrar la cursada.', 'error'));
+                }
+            });
+        }
+    </script>
+}

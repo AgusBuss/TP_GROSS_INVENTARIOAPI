@@ -1,0 +1,35 @@
+﻿@model AppAlumnos.Models.DocenteMateria
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">@(Model.Id == 0 ? "Nueva Asignación" : "Editar Asignación")</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<form id="formAsignacion" asp-action="Guardar" asp-controller="Asignaciones" method="post" onsubmit="guardarAsignacion(event)">
+    <div class="modal-body">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-floating mb-3">
+            <select asp-for="DocenteId" asp-items="ViewBag.Docentes" class="form-select">
+                <option value="">-- Seleccione un docente --</option>
+            </select>
+            <label asp-for="DocenteId"></label>
+            <span asp-validation-for="DocenteId" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-3">
+            <select asp-for="MateriaId" asp-items="ViewBag.Materias" class="form-select">
+                <option value="">-- Seleccione una materia --</option>
+            </select>
+            <label asp-for="MateriaId"></label>
+            <span asp-validation-for="MateriaId" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle"></i> Guardar
+        </button>
+    </div>
+</form>

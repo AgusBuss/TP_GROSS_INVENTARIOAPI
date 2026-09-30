@@ -1,0 +1,75 @@
+﻿@model IEnumerable<AppAlumnos.Models.Inscripcion>
+
+@{
+    ViewData["Title"] = "Historia Académica";
+    bool mostrarSelector = (bool)(ViewBag.MostrarSelector ?? false);
+}
+
+<partial name="_PortalNav" />
+
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <h2>Historia Académica @(ViewBag.NombreAlumno != null ? $"— {ViewBag.NombreAlumno}" : "")</h2>
+    @if (!mostrarSelector)
+    {
+        <button class="btn btn-outline-secondary" onclick="window.print()">
+            <i class="bi bi-printer"></i> Imprimir
+        </button>
+    }
+</div>
+
+@if (mostrarSelector)
+{
+    <form method="get" asp-action="HistoriaAcademica" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <select name="alumnoId" asp-items="ViewBag.Alumnos" class="form-select">
+                <option value="">-- Seleccione un alumno --</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Ver Historia</button>
+        </div>
+    </form>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Materia</th>
+                <th>Año Lectivo</th>
+                <th>Estado</th>
+                <th>Nota Final</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No hay materias registradas.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Materia?.Nombre</td>
+                        <td>@item.AnioLectivo</td>
+                        <td>@item.Estado</td>
+                        <td>@(item.NotaFinal?.ToString("0.##") ?? "—")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@section Styles {
+    <style>
+        @@media print {
+            .no-print, nav, footer, .portal-nav {
+                display: none !important;
+            }
+        }
+    </style>
+}

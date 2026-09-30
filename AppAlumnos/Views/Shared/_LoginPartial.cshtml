@@ -1,0 +1,104 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using AppAlumnos.Models
+@inject SignInManager<Usuario> SignInManager
+@inject UserManager<Usuario> UserManager
+
+<ul class="navbar-nav align-items-center">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        var usuarioActual = await UserManager.GetUserAsync(User);
+        var nombreMostrar = usuarioActual != null ? $"{usuarioActual.Nombre} {usuarioActual.Apellido}" : User.Identity?.Name;
+        var avatarUrl = usuarioActual?.FotoPerfilUrl;
+
+        <li class="nav-item">
+            <a href="#" onclick="abrirModalAvatar(); return false;" title="Cambiar avatar">
+                @if (!string.IsNullOrEmpty(avatarUrl))
+                {
+                    <img src="@avatarUrl" class="rounded-circle" style="width:32px;height:32px;object-fit:cover;" />
+                }
+                else
+                {
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-circle text-secondary" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 10.226 4.805 9 8 9s4.757 1.225 5.468 3.37A7 7 0 0 0 8 1z"/>
+                    </svg>
+                }
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">¡Hola, @nombreMostrar!</a>
+        </li>
+        <li class="nav-item">
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button type="submit" class="nav-link btn btn-link text-dark">Cerrar sesión</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Registrarse</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Iniciar sesión</a>
+        </li>
+    }
+</ul>
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="modal fade" id="modalAvatar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" id="modalContentAvatar"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let modalElementAvatar;
+
+        function abrirModalAvatar() {
+            fetch('/Perfil/ObtenerFormulario')
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('modalContentAvatar').innerHTML = html;
+                    document.getElementById('formAvatar').action = '/Perfil/Guardar';
+                    if (!modalElementAvatar) {
+                        modalElementAvatar = new bootstrap.Modal(document.getElementById('modalAvatar'));
+                    }
+                    modalElementAvatar.show();
+                });
+        }
+
+        function previsualizar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const img = document.getElementById('previewAvatar');
+                img.src = URL.createObjectURL(file);
+                img.classList.remove('d-none');
+                const svg = document.getElementById('previewAvatarSvg');
+                if (svg) svg.classList.add('d-none');
+            }
+        }
+
+        function guardarAvatar(event) {
+            event.preventDefault();
+            const form = event.target;
+            fetch(form.action, { method: 'POST', body: new FormData(form) })
+                .then(res => {
+                    if (!res.ok) throw new Error();
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        modalElementAvatar.hide();
+                        Swal.fire({ title: '¡Listo!', text: data.mensaje, icon: 'success', timer: 1500, showConfirmButton: false })
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.mensaje, 'error');
+                    }
+                })
+                .catch(() => Swal.fire('Error', 'No se pudo subir la imagen.', 'error'));
+        }
+    </script>
+}

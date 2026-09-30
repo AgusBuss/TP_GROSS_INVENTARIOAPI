@@ -1,0 +1,43 @@
+﻿@{
+    bool esAlumno = User.IsInRole("Alumno");
+    bool esDocente = User.IsInRole("Docente");
+    bool esAdmin = User.IsInRole("Administrador");
+    string accionActual = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+
+<ul class="nav nav-pills portal-nav">
+    <li class="nav-item">
+        <a class="nav-link @(accionActual == "Index" ? "active" : "")" asp-controller="Portal" asp-action="Index">
+            <i class="bi bi-house"></i> Inicio del Portal
+        </a>
+    </li>
+    @if (esAlumno || esAdmin)
+    {
+        <li class="nav-item">
+            <a class="nav-link @(accionActual == "HistoriaAcademica" ? "active" : "")" asp-controller="Portal" asp-action="HistoriaAcademica">
+                <i class="bi bi-clock-history"></i> Historia Académica
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(accionActual == "Certificado" || accionActual == "GenerarCertificado" ? "active" : "")" asp-controller="Portal" asp-action="Certificado">
+                <i class="bi bi-file-earmark-text"></i> Certificados
+            </a>
+        </li>
+    }
+    @if (esDocente || esAdmin)
+    {
+        <li class="nav-item">
+            <a class="nav-link @(accionActual == "MisMaterias" || accionActual == "DetalleMateria" ? "active" : "")" asp-controller="Portal" asp-action="MisMaterias">
+                <i class="bi bi-people"></i> Mis Materias
+            </a>
+        </li>
+    }
+    @if (esAdmin)
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Asignaciones" asp-action="Index">
+                <i class="bi bi-diagram-3"></i> Asignaciones
+            </a>
+        </li>
+    }
+</ul>

@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Solicitud de Certificados";
+    bool mostrarSelectorAlumno = (bool)(ViewBag.MostrarSelectorAlumno ?? false);
+}
+
+<partial name="_PortalNav" />
+
+<h2 class="mb-4">Solicitud de Certificados</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+@if (mostrarSelectorAlumno)
+{
+    <form method="get" asp-action="Certificado" class="row g-3 mb-4">
+        <div class="col-md-6">
+            <select name="alumnoId" asp-items="ViewBag.Alumnos" class="form-select">
+                <option value="">-- Seleccione un alumno --</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Continuar</button>
+        </div>
+    </form>
+}
+else
+{
+    <p class="mb-4">Certificados disponibles para: <strong>@ViewBag.NombreAlumno</strong></p>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Certificado de Alumno Regular</h5>
+                    <p class="card-text">Certifica que el alumno se encuentra cursando materias en el año lectivo actual.</p>
+                    <a class="btn btn-primary" href="@Url.Action("GenerarCertificado", "Portal", new { alumnoId = ViewBag.AlumnoId, tipo = "Regular" })">
+                        <i class="bi bi-download"></i> Descargar PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Certificado de Materias Aprobadas</h5>
+                    <p class="card-text">Lista las materias aprobadas por el alumno, con su nota final.</p>
+                    <a class="btn btn-primary" href="@Url.Action("GenerarCertificado", "Portal", new { alumnoId = ViewBag.AlumnoId, tipo = "MateriasAprobadas" })">
+                        <i class="bi bi-download"></i> Descargar PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

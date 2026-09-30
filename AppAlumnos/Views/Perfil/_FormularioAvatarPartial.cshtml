@@ -1,0 +1,30 @@
+﻿@model AppAlumnos.Models.Usuario
+
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">Actualizar Avatar</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<form id="formAvatar" method="post" enctype="multipart/form-data" onsubmit="guardarAvatar(event)">
+    @Html.AntiForgeryToken()
+    <div class="modal-body text-center">
+        @if (!string.IsNullOrEmpty(Model.FotoPerfilUrl))
+        {
+            <img src="@Model.FotoPerfilUrl" class="rounded-circle mb-3" style="width:120px;height:120px;object-fit:cover;" id="previewAvatar" />
+        }
+        else
+        {
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="bi bi-person-circle text-secondary mb-3" viewBox="0 0 16 16" id="previewAvatarSvg">
+                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 10.226 4.805 9 8 9s4.757 1.225 5.468 3.37A7 7 0 0 0 8 1z"/>
+            </svg>
+            <img src="" class="rounded-circle mb-3 d-none" style="width:120px;height:120px;object-fit:cover;" id="previewAvatar" />
+        }
+        <br />
+        <input type="file" name="archivo" id="inputArchivo" class="form-control" accept=".jpg,.jpeg,.png" onchange="previsualizar(event)" />
+        <small class="text-muted">JPG o PNG, máximo 2 MB.</small>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">Guardar</button>
+    </div>
+</form>

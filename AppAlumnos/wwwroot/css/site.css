@@ -1,0 +1,163 @@
+/* ===== Tipografía ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --color-primary: #2b4c7e;
+    --color-primary-dark: #1e3a5f;
+    --color-primary-light: #4a6fa5;
+    --color-accent: #f2a541;
+    --color-bg: #f5f7fa;
+    --color-text: #22303f;
+    --color-muted: #6c7a89;
+    --radius-base: 0.6rem;
+}
+
+html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+a {
+    color: var(--color-primary);
+}
+
+    a:hover {
+        color: var(--color-primary-dark);
+    }
+
+/* ===== Navbar ===== */
+.navbar {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e3e8ee !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: var(--color-primary) !important;
+    letter-spacing: -0.02em;
+}
+
+.navbar .nav-link {
+    font-weight: 500;
+    color: var(--color-text) !important;
+    padding: 0.5rem 0.9rem !important;
+    border-radius: var(--radius-base);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+    .navbar .nav-link:hover {
+        background-color: #eef2f7;
+        color: var(--color-primary) !important;
+    }
+
+/* ===== Botones ===== */
+.btn {
+    border-radius: var(--radius-base);
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+    .btn-primary:hover {
+        background-color: var(--color-primary-dark);
+        border-color: var(--color-primary-dark);
+    }
+
+.btn-success {
+    background-color: #2e8b57;
+    border-color: #2e8b57;
+}
+
+    .btn-success:hover {
+        background-color: #256e45;
+        border-color: #256e45;
+    }
+
+/* ===== Cards ===== */
+.card {
+    border: 1px solid #e3e8ee;
+    border-radius: var(--radius-base);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+    .card.shadow-sm:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08) !important;
+        transform: translateY(-2px);
+    }
+
+.card-title {
+    font-weight: 600;
+    color: var(--color-primary-dark);
+}
+
+/* ===== Tablas ===== */
+.table {
+    background-color: #ffffff;
+    border-radius: var(--radius-base);
+    overflow: hidden;
+}
+
+    .table thead.table-light th {
+        background-color: #eef2f7;
+        color: var(--color-text);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        letter-spacing: 0.03em;
+        border-bottom: 2px solid #dde4ec;
+    }
+
+.table-hover tbody tr:hover {
+    background-color: #f5f8fb;
+}
+
+/* ===== Badges de Estado ===== */
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.7em;
+    border-radius: 0.4rem;
+}
+
+/* ===== Formularios ===== */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 0 0.2rem rgba(43, 76, 126, 0.15);
+}
+
+/* ===== Portal: nav secundaria tipo pills ===== */
+.portal-nav {
+    margin-bottom: 1.5rem;
+}
+
+    .portal-nav .nav-link {
+        border-radius: var(--radius-base);
+        font-weight: 500;
+        color: var(--color-text);
+        padding: 0.5rem 1rem;
+    }
+
+        .portal-nav .nav-link.active {
+            background-color: var(--color-primary);
+            color: #fff;
+        }
+
+        .portal-nav .nav-link:not(.active):hover {
+            background-color: #eef2f7;
+        }
+
+/* ===== Footer ===== */
+.footer {
+    background-color: #ffffff;
+    border-top: 1px solid #e3e8ee;
+}

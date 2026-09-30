@@ -1,0 +1,27 @@
+﻿@model IEnumerable<AppAlumnos.Models.Materia>
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="4" class="text-center text-muted">No hay materias para mostrar.</td>
+    </tr>
+}
+else
+{
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td class="align-middle">@item.Nombre</td>
+            <td class="align-middle">@item.Anio° Año</td>
+            <td class="align-middle">@(item.Carrera?.Nombre ?? "—")</td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-warning me-1" onclick="abrirModal('@Url.Action("ObtenerFormulario", "Materias", new { id = item.Id })')">
+                    Editar
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarMateria(@item.Id, '@item.Nombre')">
+                    Eliminar
+                </button>
+            </td>
+        </tr>
+    }
+}
